@@ -1,0 +1,46 @@
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+
+library(tidyverse)
+library(lingtypology)
+library(DT)
+
+```
+
+## Evidentiality as part of the tense system
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width = 9.5}
+
+vill <- read_tsv("data/villages.csv")
+vill <- vill[complete.cases(vill$lat),]
+lang <- read_tsv("data/languages.csv")
+vill_lang <- merge(vill, lang, by = "language")
+
+ev <- read_tsv("table_example_evidentialityxtense.csv")
+
+ev_vill <- merge(vill_lang, ev, by = "glottocode")
+
+map.feature(lang.gltc(ev_vill$glottocode),
+            latitude = ev_vill$lat,
+            longitude = ev_vill$lon,
+            features = ev_vill$language.y,
+            color = ev_vill$color,
+            stroke.features = ev_vill$value,
+            stroke.color = c("black", "white", "grey"),
+            label = ev_vill$language,
+            zoom.control = T,
+            popup = ev_vill$name,
+            width = 3, stroke.radius = 8,
+            legend = FALSE)
+
+```
+
+````{r}
+
+dtable <- ev %>%
+  select(-c(glottocode, feature))
+
+DT::datatable(dtable, escape = TRUE, rownames = FALSE,
+              options = list(pageLength = 15, dom = 'ftip'))
+```
