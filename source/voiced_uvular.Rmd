@@ -1,0 +1,131 @@
+---
+title: "Presence of voiced uvular stop"
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+
+# packages
+
+library(tidyverse)
+library(lingtypology)
+library(DT)
+library(RefManageR)
+
+
+bib_uv <- ReadBib(file = "bibliography.bib")
+BibOptions(style = "html", bib.style = "authoryear", cite.style = "authoryear", max.names = 2)
+
+# load data
+
+vill <- read_tsv("data/villages.csv") # villages dataset
+meta <- read_tsv("data/meta.csv") # language metadata and colors
+uv <- read_tsv("data/voiced_uvular.tsv") # feature dataset
+
+# preparation of data
+
+vill <- vill[complete.cases(vill$lat),] # remove villages for which we do not have coordinates (yet)
+
+meta_core <- meta %>% # remove idioms not (yet) recognized as distinct
+  filter(core == "yes")
+
+vill_meta <- merge(vill, meta_core, by = "lang") # merge villages and coordinates with language metadata
+
+uv_vill <- merge(vill_meta, uv, by = "lang") # merge villages, coordinates, and language metadata with feature information
+
+uv_vill$datapoint <- "extrapolated datapoint"
+
+```
+
+## Maps{.tabset .tabset-fade .tabset-pills}
+
+### Map: Extrapolated data
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width = 9.5}
+
+# draw a map
+
+map.feature(lang.gltc(uv_vill$glottocode),
+            latitude = uv_vill$lat,
+            longitude = uv_vill$lon,
+            features = uv_vill$lang, # color feature = language
+            color = uv_vill$lang_color_dagatlas,
+            stroke.features = uv_vill$value, # stroke.feature = your feature value
+            stroke.color = c("black", "white"), 
+            label = uv_vill$lang,
+            zoom.control = T,
+            popup = paste("<b>Village:</b>", uv_vill$village, "<br>", 
+                          "<b>Source:</b>", uv_vill$source, uv_vill$page, "<br>",
+                          "<b>Datapoint:</b>", uv_vill$datapoint),
+            width = 3, stroke.radius = 8,
+            legend = FALSE)
+
+```
+
+### Map: General datapoints
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width = 9.5}
+
+# filter core languages
+
+core_meta <- meta %>%
+  filter(core == "yes")
+
+core_data <- left_join(core_meta, uv, by = "lang")
+
+core_data$datapoint <- "general datapoint"
+
+# draw a map
+
+map.feature(lang.gltc(core_data$glottocode),
+            latitude = core_data$gltc_lat,
+            longitude = core_data$gltc_lon,
+            features = core_data$lang, # color feature = language
+            color = core_data$lang_color_dagatlas,
+            stroke.features = core_data$value, # stroke.feature = your feature value
+            stroke.color = c("black", "white"), 
+            label = core_data$lang,
+            zoom.control = T,
+            popup = paste("<b>Source:</b>", core_data$source, core_data$page, "<br>",
+                          "<b>Datapoint:</b>", core_data$datapoint),
+            width = 3, stroke.radius = 8,
+            legend = FALSE)
+
+```
+
+## Datatable
+
+```{r}
+
+# select which feature data you want to show in the datatable
+
+dtable <- uv %>%
+  select(-c(type, core, exception))
+
+for (i in seq_along(dtable$source)) 
+  {
+  if (grepl("; ", dtable$source[[i]], fixed = TRUE) == TRUE) 
+    {
+  cits = strsplit(dtable$source[[i]], "; ")
+    for (j in seq_along(cits))
+      { 
+        cits[[j]] <- RefManageR::Cite(bib = bib_uv, cits[[j]], .opt = list(max.names = 2))
+      }
+  dtable$source[[i]] = paste(cits, sep = "; ")
+    } 
+  else 
+    {
+      dtable$source[[i]] <- RefManageR::Cite(bib = bib_uv, dtable$source[[i]], .opt = list(max.names = 2))
+    }
+}
+
+# generate searchable datatable
+
+DT::datatable(dtable, escape = FALSE, rownames = FALSE,
+              options = list(pageLength = 15, dom = 'ftip'))
+```
+
+### References
+
+```{r results = "asis", echo = FALSE}
+PrintBibliography(bib_uv, .opts = list(sorting = "nyt"))
+```

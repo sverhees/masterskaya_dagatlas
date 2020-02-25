@@ -1,0 +1,37 @@
+name: "tald"
+navbar:
+  title: "TALD"
+  type: inverse
+  left:
+    - text: "Home"
+      icon: fa-home
+      href: index.html
+    - text: "Morphological features"
+      menu:
+        - text: "Morphosyntax"
+        - text: "Number of agreement classes"
+          href: classes.html
+        - text: "Affective"
+          href: affective.html
+        - text: "---------"
+        - text: "Verbal morphology"
+        - text: "Evidentiality"
+          href: evidentiality.html
+    - text: "Phonetic features"
+      menu:
+        - text: "Segmental features"
+        - text: "Gemination"
+          href: gemination.html
+        - text: "Laterals"
+          href: laterals.html
+        - text: "Voiced uvular"
+          href: voiced_uvular.html
+        - text: "---------"
+        - text: "Suprasegmental features"
+        - text: "Nasalization"
+          href: nasalization.html
+        - text: "Pharyngealization"
+          href: pharyngealization.html
+  right:
+    - icon: fa-question fa-lg
+      href: somepage.html
